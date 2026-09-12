@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.client.RestClientException;
 
-import io.swagger.v3.oas.annotations.Hidden; // <-- 1. Agregá este import
+import io.swagger.v3.oas.annotations.Hidden; 
 
-@Hidden // <-- 2. Agregá esta anotación justo arriba de @RestControllerAdvice
+@Hidden 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
