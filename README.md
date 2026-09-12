@@ -13,7 +13,7 @@ git clone https://github.com/benjaeceiza/tp-1-web2
 ```
 
 
-1. Posicionarse en el directorio raíz del proyecto:
+2. Posicionarse en el directorio raíz del proyecto:
 ```bash
    cd api-blank
 ```
