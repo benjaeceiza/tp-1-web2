@@ -1,0 +1,13 @@
+package ar.edu.unvime.apiblank.dto.favorito;
+
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+
+public record FavoritoRequestDTO(
+        @NotNull(message = "El id de la lista no puede ser nulo")
+        Long listaId,
+        @NotNull(message = "El ID del producto es obligatorio")
+        Long productoId,
+        @NotBlank(message = "La nota personal no puede estar vacía")
+        String notaPersonal
+        ) {}

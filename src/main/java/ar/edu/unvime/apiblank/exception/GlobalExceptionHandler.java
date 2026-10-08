@@ -3,7 +3,9 @@ package ar.edu.unvime.apiblank.exception;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -26,6 +28,7 @@ public class GlobalExceptionHandler {
         return errores;
     }
 
+    // Dejamos tu método original para los errores 404
     @ExceptionHandler(RecursoNoEncontradoException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
     public Map<String, String> manejarRecursoNoEncontrado(RecursoNoEncontradoException ex) {
@@ -41,5 +44,12 @@ public class GlobalExceptionHandler {
         error.put("error", "El servicio externo de productos no está respondiendo.");
         error.put("detalle", ex.getMessage());
         return error;
+    }
+
+    // Y acá agregamos el nuevo para el TP2 (Error 409 de Base de Datos)
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+                .body("Conflicto: No se puede borrar la lista porque todavía tiene favoritos asociados.");
     }
 }
