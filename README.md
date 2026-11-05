@@ -1,6 +1,6 @@
 # TP2 & TP3 - PostgreSQL, Arquitectura Hexagonal, Seguridad (JWT), Pruebas y CI/CD (Web 2 - UNViMe)
 
-API REST desarrollada en Java con Spring Boot. Este proyecto evoluciona la API migrando el almacenamiento en memoria a una base de datos relacional (PostgreSQL) aplicando Arquitectura Hexagonal, migraciones automáticas con Flyway, control de transacciones, autenticación stateless con JWT, autorización por rol y propiedad de recursos, pruebas automatizadas (unitarias y de integración con Testcontainers) e Integración Continua con GitHub Actions.
+API REST desarrollada en Java con Spring Boot. Este proyecto evoluciona la API migrando el almacenamiento en memoria a una base de datos relacional (PostgreSQL) aplicando Arquitectura Hexagonal, migraciones automáticas con Flyway, control de transacciones, autenticación stateless con JWT, autorización por rol y propiedad de recursos, pruebas automatizadas (unitarias y de integración con Testcontainers), Integración Continua con GitHub Actions y Despliegue Continuo en Render.
 
 ## Requisitos previos
 * Java 25
@@ -60,6 +60,24 @@ El archivo [`.github/workflows/ci.yml`](.github/workflows/ci.yml) define el pipe
 3. Ejecuta las pruebas unitarias (`./mvnw --batch-mode test`).
 4. Ejecuta las pruebas de integración con Testcontainers y genera el reporte de cobertura (`./mvnw --batch-mode verify`).
 5. Sube el reporte de JaCoCo (`target/site/jacoco`) como artefacto descargable (`reporte-de-cobertura`) en la pestaña **Actions** de GitHub.
+
+---
+
+## Despliegue en Render (TP3 - Punto 7)
+
+El proyecto incluye [`Dockerfile`](Dockerfile) (multi-stage con `eclipse-temurin:25-jdk` y `eclipse-temurin:25-jre`), el endpoint público `GET /health` ([`HealthController`](src/main/java/ar/edu/unvime/apiblank/controller/HealthController.java)) y el Blueprint [`render.yaml`](render.yaml) con `autoDeployTrigger: checksPass`.
+
+### Pasos para desplegar en Render:
+1. Asegurarse de que los cambios estén en la rama `main` y el workflow de GitHub Actions esté en verde ✅.
+2. Ingresar a [render.com](https://render.com/) con la cuenta de GitHub e ir a **New $\rightarrow$ Blueprint**.
+3. Seleccionar el repositorio `tp-1-web2` (rama `main`). Render detectará `render.yaml` para crear la base PostgreSQL (`web2-db`) y el servicio web (`tp-web2-api`).
+4. Cuando pida `DB_URL`, escribir temporalmente `pendiente` y hacer clic en **Deploy Blueprint**.
+5. Una vez creada la base `web2-db`, entrar a su pestaña **Info**, copiar el **Hostname** interno (`dpg-...-a`) y el nombre de **Database** (`web2_...`), y armar la URL JDBC:
+   ```text
+   jdbc:postgresql://HOSTNAME:5432/DATABASE
+   ```
+6. En el servicio web `tp-web2-api` $\rightarrow$ **Environment**, editar `DB_URL` con esa URL JDBC y hacer clic en **Save, rebuild, and deploy**.
+7. Verificar en **Logs** que Flyway aplicó las migraciones `V1` a `V6` y que `GET https://<tu-servicio>.onrender.com/health` responde `200 OK` con `{"status":"ok","service":"api-blank"}`.
 
 ---
 
