@@ -46,6 +46,33 @@ public class GlobalExceptionHandler {
         return error;
     }
 
+    // Error 409 cuando el email ya está registrado (TP3 - Punto 2)
+    @ExceptionHandler(EmailYaRegistradoException.class)
+    @ResponseStatus(HttpStatus.CONFLICT)
+    public Map<String, String> manejarEmailYaRegistrado(EmailYaRegistradoException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return error;
+    }
+
+    // Error 401 cuando las credenciales de login son inválidas (TP3 - Punto 3)
+    @ExceptionHandler(CredencialesInvalidasException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
+    public Map<String, String> manejarCredencialesInvalidas(CredencialesInvalidasException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return error;
+    }
+
+    // Error 403 cuando un usuario intenta acceder/modificar una lista ajena sin ser ADMIN (TP3 - Punto 4)
+    @ExceptionHandler(AccesoDenegadoException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public Map<String, String> manejarAccesoDenegado(AccesoDenegadoException ex) {
+        Map<String, String> error = new HashMap<>();
+        error.put("error", ex.getMessage());
+        return error;
+    }
+
     // Y acá agregamos el nuevo para el TP2 (Error 409 de Base de Datos)
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<String> handleDataIntegrity(DataIntegrityViolationException ex) {
