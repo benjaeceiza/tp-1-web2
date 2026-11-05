@@ -11,14 +11,16 @@ public class ListaMapper {
     public Lista toDomain(ListaRequestDTO dto) {
         return new Lista(
                 null,
-                dto.nombre()
+                dto.nombre(),
+                null
         );
     }
 
     public ListaResponseDTO toDTO(Lista lista) {
         return new ListaResponseDTO(
                 lista.getId(),
-                lista.getNombre()
+                lista.getNombre(),
+                lista.getUsuarioId()
         );
     }
 }

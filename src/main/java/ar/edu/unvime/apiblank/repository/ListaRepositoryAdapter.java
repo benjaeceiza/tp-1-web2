@@ -20,7 +20,13 @@ public class ListaRepositoryAdapter implements ListaRepository {
         ListaEntity entity = new ListaEntity();
         entity.setId(lista.getId());
         entity.setNombre(lista.getNombre());
-        
+
+        if (lista.getUsuarioId() != null) {
+            UsuarioEntity usuarioRef = new UsuarioEntity();
+            usuarioRef.setId(lista.getUsuarioId());
+            entity.setUsuario(usuarioRef);
+        }
+
         ListaEntity guardada = jpaRepository.save(entity);
         lista.setId(guardada.getId());
         return lista;
@@ -29,18 +35,30 @@ public class ListaRepositoryAdapter implements ListaRepository {
     @Override
     public List<Lista> findAll() {
         return jpaRepository.findAll().stream()
-                .map(e -> new Lista(e.getId(), e.getNombre()))
+                .map(this::toDomain)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public List<Lista> findByUsuarioId(Long usuarioId) {
+        return jpaRepository.findByUsuarioId(usuarioId).stream()
+                .map(this::toDomain)
                 .collect(Collectors.toList());
     }
 
     @Override
     public Optional<Lista> findById(Long id) {
         return jpaRepository.findById(id)
-                .map(e -> new Lista(e.getId(), e.getNombre()));
+                .map(this::toDomain);
     }
 
     @Override
     public void deleteById(Long id) {
         jpaRepository.deleteById(id);
+    }
+
+    private Lista toDomain(ListaEntity e) {
+        Long usuarioId = e.getUsuario() != null ? e.getUsuario().getId() : null;
+        return new Lista(e.getId(), e.getNombre(), usuarioId);
     }
 }
