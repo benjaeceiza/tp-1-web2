@@ -1,13 +1,19 @@
 # TP2 & TP3 - PostgreSQL, Arquitectura Hexagonal, Seguridad (JWT), Pruebas y CI/CD (Web 2 - UNViMe)
 
-API REST desarrollada en Java con Spring Boot. Este proyecto evoluciona la API migrando el almacenamiento en memoria a una base de datos relacional (PostgreSQL) aplicando Arquitectura Hexagonal, migraciones automáticas con Flyway, control de transacciones, autenticación stateless con JWT, autorización por rol y propiedad de recursos, pruebas automatizadas (unitarias y de integración con Testcontainers), Integración Continua con GitHub Actions y Despliegue Continuo en Render.
+API REST desarrollada en Java 25 con Spring Boot. Este proyecto evoluciona la API migrando el almacenamiento en memoria a una base de datos relacional (PostgreSQL) aplicando Arquitectura Hexagonal, migraciones automáticas con Flyway, control de transacciones, autenticación stateless con JWT, autorización por rol y propiedad de recursos, pruebas automatizadas (unitarias y de integración con Testcontainers), Integración Continua con GitHub Actions y Despliegue en Render.
+
+* **URL pública desplegada en Render**: [https://tp-web2-api.onrender.com](https://tp-web2-api.onrender.com)
+* **Health Check en vivo**: [https://tp-web2-api.onrender.com/health](https://tp-web2-api.onrender.com/health)
+* **Swagger UI en vivo**: [https://tp-web2-api.onrender.com/swagger-ui/index.html](https://tp-web2-api.onrender.com/swagger-ui/index.html)
+
+---
 
 ## Requisitos previos
 * Java 25
 * Maven
-* Docker Desktop (necesario para levantar el contenedor de la base de datos y correr Testcontainers)
+* Docker Desktop (necesario para levantar el contenedor de la base de datos local y correr las pruebas de integración con Testcontainers)
 
-## Instrucciones para levantar el proyecto
+## Instrucciones para levantar el proyecto en local
 1. Clonar este repositorio:
 ```bash
 git clone https://github.com/benjaeceiza/tp-1-web2
@@ -32,59 +38,79 @@ docker compose up -d
 
 ---
 
-## Ejecución de Pruebas y Cobertura (TP3 - Punto 5)
+## Cómo correr los tests y ver el reporte de cobertura (TP3 - Punto 5)
 
-El proyecto cuenta con pruebas unitarias (`*Test`, ejecutadas por Maven Surefire) y pruebas de integración (`*IT`, ejecutadas por Maven Failsafe usando **Testcontainers** con un PostgreSQL real descartable y **Flyway**):
+El proyecto separa las pruebas según su tipo y sufijo:
+* **Pruebas Unitarias (`*Test`)**: Ejecutadas por **Maven Surefire**. Prueban clases aisladas (`ListaServiceTest`, `AuthServiceTest`, `JwtServiceTest`, `HealthControllerTest`) usando mocks con Mockito, sin levantar Spring ni base de datos.
+* **Pruebas de Integración (`*IT`)**: Ejecutadas por **Maven Failsafe** (`ListaControllerIT`). Levantan el contexto real de Spring Boot (`@SpringBootTest`, `@AutoConfigureMockMvc`) contra una base **PostgreSQL real descartable en Docker mediante Testcontainers**, aplicando todas las migraciones de **Flyway** (`V1` a `V6`) en cada ejecución.
 
-1. **Correr solo las pruebas unitarias** (rápido, no requiere Docker):
+### Comandos:
+1. **Ejecutar únicamente las pruebas unitarias** (rápido, no requiere Docker):
    ```bash
    ./mvnw clean test
    ```
-2. **Correr toda la suite (unitarias + integración con Testcontainers + reporte JaCoCo)** (requiere Docker Desktop abierto):
+   *(En Windows PowerShell: `./mvnw.cmd clean test`)*
+
+2. **Ejecutar toda la suite (unitarias + integración con Testcontainers + reporte JaCoCo)** (requiere **Docker Desktop abierto**):
    ```bash
    ./mvnw clean verify
    ```
-3. **Ver el reporte de cobertura de JaCoCo**:
-   Luego de ejecutar `verify`, abrir en el navegador el archivo:
+   *(En Windows PowerShell: `./mvnw.cmd clean verify`)*
+
+3. **Abrir el reporte de cobertura de JaCoCo**:
+   Al finalizar `./mvnw clean verify`, JaCoCo genera el reporte HTML en:
    ```text
    target/site/jacoco/index.html
    ```
 
 ---
 
-## Integración Continua con GitHub Actions (TP3 - Punto 6)
+## Cómo leer el resultado de CI en GitHub Actions (TP3 - Punto 6)
 
-El archivo [`.github/workflows/ci.yml`](.github/workflows/ci.yml) define el pipeline de Integración Continua que se dispara automáticamente en cada `push` y `pull_request`:
-1. Levanta un runner limpio `ubuntu-latest` (que ya incluye Docker para Testcontainers) e instala **Java 25 (Temurin)**.
-2. Compila el código y los tests (`./mvnw --batch-mode test-compile`).
-3. Ejecuta las pruebas unitarias (`./mvnw --batch-mode test`).
-4. Ejecuta las pruebas de integración con Testcontainers y genera el reporte de cobertura (`./mvnw --batch-mode verify`).
-5. Sube el reporte de JaCoCo (`target/site/jacoco`) como artefacto descargable (`reporte-de-cobertura`) en la pestaña **Actions** de GitHub.
+El pipeline de Integración Continua está definido en [`.github/workflows/ci.yml`](.github/workflows/ci.yml) y se ejecuta automáticamente en cada `push` y en cada `pull_request` sobre un entorno limpio (`ubuntu-latest` con Docker y Java 25 Temurin):
 
----
-
-## Despliegue en Render (TP3 - Punto 7)
-
-El proyecto incluye [`Dockerfile`](Dockerfile) (multi-stage con `eclipse-temurin:25-jdk` y `eclipse-temurin:25-jre`), el endpoint público `GET /health` ([`HealthController`](src/main/java/ar/edu/unvime/apiblank/controller/HealthController.java)) y el Blueprint [`render.yaml`](render.yaml) con `autoDeployTrigger: checksPass`.
-
-### Pasos para desplegar en Render:
-1. Asegurarse de que los cambios estén en la rama `main` y el workflow de GitHub Actions esté en verde ✅.
-2. Ingresar a [render.com](https://render.com/) con la cuenta de GitHub e ir a **New $\rightarrow$ Blueprint**.
-3. Seleccionar el repositorio `tp-1-web2` (rama `main`). Render detectará `render.yaml` para crear la base PostgreSQL (`web2-db`) y el servicio web (`tp-web2-api`).
-4. Cuando pida `DB_URL`, escribir temporalmente `pendiente` y hacer clic en **Deploy Blueprint**.
-5. Una vez creada la base `web2-db`, entrar a su pestaña **Info**, copiar el **Hostname** interno (`dpg-...-a`) y el nombre de **Database** (`web2_...`), y armar la URL JDBC:
-   ```text
-   jdbc:postgresql://HOSTNAME:5432/DATABASE
-   ```
-6. En el servicio web `tp-web2-api` $\rightarrow$ **Environment**, editar `DB_URL` con esa URL JDBC y hacer clic en **Save, rebuild, and deploy**.
-7. Verificar en **Logs** que Flyway aplicó las migraciones `V1` a `V6` y que `GET https://<tu-servicio>.onrender.com/health` responde `200 OK` con `{"status":"ok","service":"api-blank"}`.
+1. En el repositorio de GitHub, ingresar a la pestaña **Actions**.
+2. Cada ejecución muestra su estado:
+   * 🟡 **Amarillo (`In progress`)**: El workflow se está ejecutando.
+   * 🟢 **Verde (`Success`)**: El código compiló y pasaron tanto las pruebas unitarias (`*Test`) como las de integración (`*IT` con Testcontainers).
+   * 🔴 **Rojo (`Failure`)**: Algún paso falló. Haciendo clic en la ejecución y luego en el job **Compilar y probar**, se despliegan los pasos (`1 — Compilar`, `2 — Pruebas unitarias`, `3 — Pruebas de integración y cobertura`) para ver exactamente qué test falló y por qué.
+3. Al final de la página de resumen de cada ejecución (**Summary**), en la sección **Artifacts**, se puede descargar el archivo `reporte-de-cobertura` que contiene el `index.html` generado por JaCoCo durante el CI.
 
 ---
 
-## Evidencia y Pruebas (Swagger UI / Postman)
-Con la aplicación corriendo, ingresar a `http://localhost:8080/swagger-ui/index.html`. Allí se encuentra la documentación interactiva mostrando los recursos: **Autenticación**, **Productos**, **Favoritos** y **Listas** con sus respectivas descripciones (`@Operation`) y el botón **Authorize** para probar con el token JWT.
+## Pasos de despliegue seguidos en Render (TP3 - Punto 7)
 
-*Nota: Las capturas de pantalla o colecciones de pruebas solicitadas por la cátedra se encuentran adjuntas en la entrega o en la carpeta `/evidencias` del repositorio.*
+El proyecto se desplegó en **Render** utilizando contenedorización con [`Dockerfile`](Dockerfile) (multi-stage con `eclipse-temurin:25-jdk` para compilación y `eclipse-temurin:25-jre` para ejecución) y el archivo Blueprint [`render.yaml`](render.yaml):
+
+1. **Preparación del código**:
+   * Se creó el endpoint público `GET /health` ([`HealthController`](src/main/java/ar/edu/unvime/apiblank/controller/HealthController.java)) para el chequeo de salud de Render (`healthCheckPath: /health`).
+   * Se parametrizaron en [`application.properties`](src/main/resources/application.properties) las variables de entorno `PORT`, `DB_URL`, `DB_USER`, `DB_PASSWORD` y `JWT_SECRET`.
+   * Se configuró `autoDeployTrigger: checksPass` en [`render.yaml`](render.yaml) para que Render despliegue automáticamente solo cuando el workflow de GitHub Actions en `main` pase en verde.
+2. **Creación del Blueprint en Render**:
+   * Con la rama `main` en verde en GitHub Actions, se ingresó a [render.com](https://render.com/) $\rightarrow$ **New + $\rightarrow$ Blueprint** y se conectó el repositorio `benjaeceiza/tp-1-web2` (rama `main`).
+   * Render detectó `render.yaml` y creó los dos recursos: la base PostgreSQL remota (`web2-db`) y el servicio web (`tp-web2-api`). En el primer paso se colocó `DB_URL=pendiente` hasta que la base terminara de aprovisionarse.
+3. **Configuración de `DB_URL` y puesta en línea (`Live`)**:
+   * Desde la sección **Info / Connections** de la base `web2-db` en Render se obtuvieron el **Hostname** interno (`dpg-dbm97qd6e07s73bhj070-a`) y el nombre de **Database** (`web2_np4s`), armando la URL JDBC:
+     ```text
+     jdbc:postgresql://dpg-dbm97qd6e07s73bhj070-a:5432/web2_np4s
+     ```
+   * En el servicio `tp-web2-api` $\rightarrow$ **Environment**, se actualizó la variable `DB_URL` con esa cadena JDBC (mientras que `DB_USER`, `DB_PASSWORD` se inyectan desde `web2-db` y `JWT_SECRET` fue autogenerada por Render) y se lanzó el redespliegue.
+4. **Verificación del despliegue**:
+   * En la pestaña **Logs** de Render se verificó que **Flyway** creó la tabla `flyway_schema_history` y aplicó las migraciones `V1` a `V6` sobre el PostgreSQL remoto, finalizando con `==> Your service is live`.
+   * Se comprobó que `GET https://tp-web2-api.onrender.com/health` responde `200 OK` con `{"status":"ok","service":"api-blank"}` y que Swagger UI funciona desde `https://tp-web2-api.onrender.com/swagger-ui/index.html`.
+
+---
+
+## TP3 - Punto 4: Autorización por propiedad de recursos y rol
+
+### ¿Dónde vive la regla de autorización?
+La regla de autorización por propiedad de recursos y rol vive en la **capa de Servicio** (`ListaService`), centralizada en el método privado `buscarPropiaOFallar(Long id)` (y en la lógica de `obtenerTodas()` y `guardar()`), apoyándose en el componente `ContextoSeguridad` para consultar el `usuarioActualId()` y si `esAdmin()`.
+
+### ¿Por qué se eligió el `Service` y no el `Controller`, un filtro o anotaciones?
+1. **Es una regla de negocio sobre el estado del dominio**: Para saber si la lista `id` pertenece al usuario autenticado, primero es necesario **buscar la lista en el repositorio** (y devolver `404 Not Found` si no existe, antes de evaluar si corresponde un `403 Forbidden`). En un filtro HTTP o en el `Controller` todavía no tenemos cargado el objeto de dominio `Lista`.
+2. **Un único punto de control (DRY y consistencia)**: Al centralizar la validación en `buscarPropiaOFallar` dentro de `ListaService`, todas las operaciones sobre una lista puntual (`obtenerPorId`, `eliminar`, `favoritosDeUnaLista` y tanto la lista origen como destino en `moverFavoritos`) pasan obligatoriamente por la misma validación sin duplicar `if` en cada endpoint del `Controller`.
+3. **Responsabilidad del `Controller` limpia**: El `Controller` solo se encarga de la capa HTTP (recibir y validar DTOs de entrada y devolver códigos de estado). Si otro servicio o componente interno invocara a `ListaService`, la regla de seguridad se seguiría cumpliendo igual, cosa que no pasaría si la validación estuviera pegada en el `Controller`.
+4. **Desacoplamiento mediante `ContextoSeguridad`**: `ListaService` no manipula directamente `SecurityContextHolder` ni clases internas de Spring Security, sino que delega la lectura de la identidad actual en `ContextoSeguridad`, facilitando además el testeo unitario con mocks.
 
 ---
 
@@ -122,16 +148,3 @@ Porque Flyway guarda un registro inmutable (un *checksum*) de cada migración ap
 El método `moverFavoritos` del `ListaService` fue marcado con la anotación `@Transactional`. En el contexto de las propiedades **ACID** de las bases de datos, esta anotación garantiza la **Atomicidad** (la operación se ejecuta "todo o nada") y protege la **Consistencia**. 
 
 Si quitáramos el `@Transactional` y el sistema fallara a mitad del proceso (por ejemplo, justo después de actualizar los favoritos pero antes de ejecutar el `deleteById` de la lista origen), la base de datos quedaría en un estado inconsistente: los favoritos estarían movidos a la lista nueva, pero la lista de origen quedaría abandonada en el sistema, vacía y sin borrar. Gracias a la transacción, si la eliminación final falla, Spring hace un *rollback* automático y deshace todos los UPDATEs previos de los favoritos, dejando la base de datos exactamente en el mismo estado en el que estaba antes de intentar la operación.
-
----
-
-## TP3 - Punto 4: Autorización por propiedad de recursos y rol
-
-### ¿Dónde vive la regla de autorización?
-La regla de autorización por propiedad de recursos y rol vive en la **capa de Servicio** (`ListaService`), centralizada en el método privado `buscarPropiaOFallar(Long id)` (y en la lógica de `obtenerTodas()` y `guardar()`), apoyándose en el componente `ContextoSeguridad` para consultar el `usuarioActualId()` y si `esAdmin()`.
-
-### ¿Por qué se eligió el `Service` y no el `Controller`, un filtro o anotaciones?
-1. **Es una regla de negocio sobre el estado del dominio**: Para saber si la lista `id` pertenece al usuario autenticado, primero es necesario **buscar la lista en el repositorio** (y devolver `404 Not Found` si no existe, antes de evaluar si corresponde un `403 Forbidden`). En un filtro HTTP o en el `Controller` todavía no tenemos cargado el objeto de dominio `Lista`.
-2. **Un único punto de control (DRY y consistencia)**: Al centralizar la validación en `buscarPropiaOFallar` dentro de `ListaService`, todas las operaciones sobre una lista puntual (`obtenerPorId`, `eliminar`, `favoritosDeUnaLista` y tanto la lista origen como destino en `moverFavoritos`) pasan obligatoriamente por la misma validación sin duplicar `if` en cada endpoint del `Controller`.
-3. **Responsabilidad del `Controller` limpia**: El `Controller` solo se encarga de la capa HTTP (recibir y validar DTOs de entrada y devolver códigos de estado). Si otro servicio o componente interno invocara a `ListaService`, la regla de seguridad se seguiría cumpliendo igual, cosa que no pasaría si la validación estuviera pegada en el `Controller`.
-4. **Desacoplamiento mediante `ContextoSeguridad`**: `ListaService` no manipula directamente `SecurityContextHolder` ni clases internas de Spring Security, sino que delega la lectura de la identidad actual en `ContextoSeguridad`, facilitando además el testeo unitario con mocks.

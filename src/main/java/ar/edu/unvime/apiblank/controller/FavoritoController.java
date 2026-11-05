@@ -17,12 +17,14 @@ import ar.edu.unvime.apiblank.dto.favorito.FavoritoRequestDTO;
 import ar.edu.unvime.apiblank.dto.favorito.FavoritoResponseDTO;
 import ar.edu.unvime.apiblank.service.FavoritoService;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/favoritos")
-@Tag(name = "Favoritos", description = "Gestión de productos favoritos guardados en memoria")
+@Tag(name = "Favoritos", description = "Gestión de productos favoritos persistidos en PostgreSQL. Requiere autenticación mediante token JWT (Authorization: Bearer <token>).")
+@SecurityRequirement(name = "bearerAuth")
 public class FavoritoController {
 
     private final FavoritoService favoritoService;
@@ -32,33 +34,48 @@ public class FavoritoController {
     }
 
     @GetMapping
-    @Operation(summary = "Listar favoritos", description = "Obtiene la lista completa de favoritos guardados en memoria")
+    @Operation(
+            summary = "Listar favoritos (Requiere autenticación)",
+            description = "Obtiene la lista de favoritos registrados. Requiere un token JWT válido (retorna 401 Unauthorized sin token)."
+    )
     public List<FavoritoResponseDTO> obtenerTodos() {
         return favoritoService.obtenerTodos();
     }
 
     @GetMapping("/{id}")
-    @Operation(summary = "Obtener favorito por ID", description = "Busca un favorito específico por su ID")
+    @Operation(
+            summary = "Obtener favorito por ID (Requiere autenticación)",
+            description = "Busca un favorito específico por su ID. Requiere autenticación con token JWT (401 sin token, 404 si no existe)."
+    )
     public FavoritoResponseDTO obtenerPorId(@PathVariable Long id) {
         return favoritoService.obtenerPorId(id);
     }
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Crear favorito", description = "Guarda un producto como favorito. Requiere ID del producto y una nota personal.")
+    @Operation(
+            summary = "Crear favorito (Requiere autenticación)",
+            description = "Guarda un producto como favorito dentro de una lista. Requiere token JWT válido (401 sin token)."
+    )
     public FavoritoResponseDTO crearFavorito(@Valid @RequestBody FavoritoRequestDTO requestDTO) {
         return favoritoService.guardarFavorito(requestDTO);
     }
 
     @PutMapping("/{id}")
-    @Operation(summary = "Actualizar favorito", description = "Modifica el productoId o la nota personal de un favorito existente")
+    @Operation(
+            summary = "Actualizar favorito (Requiere autenticación)",
+            description = "Modifica el productoId o la nota personal de un favorito existente. Requiere token JWT válido (401 sin token)."
+    )
     public FavoritoResponseDTO actualizarFavorito(@PathVariable Long id, @Valid @RequestBody FavoritoRequestDTO requestDTO) {
         return favoritoService.actualizarFavorito(id, requestDTO);
     }
 
     @DeleteMapping("/{id}")
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @Operation(summary = "Eliminar favorito", description = "Elimina un favorito de la memoria por su ID")
+    @Operation(
+            summary = "Eliminar favorito (Requiere autenticación)",
+            description = "Elimina un favorito por su ID. Requiere token JWT válido (401 sin token)."
+    )
     public void eliminarFavorito(@PathVariable Long id) {
         favoritoService.eliminarFavorito(id);
     }
