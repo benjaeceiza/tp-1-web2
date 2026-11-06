@@ -110,6 +110,8 @@ El proyecto se desplegó en **Render** utilizando contenedorización con [`Docke
 * **Migraciones de Flyway (`V1` a `V6`) aplicadas en PostgreSQL remoto (Render Logs)**: [`evidencias/8-render-flyway-migraciones.png`](evidencias/8-render-flyway-migraciones.png)
 * **Endpoint `/health` respondiendo `200 OK` en la URL pública**: [`evidencias/9-render-health-check.png`](evidencias/9-render-health-check.png)
 * **Swagger UI público en Render con botón Authorize**: [`evidencias/10-render-swagger-publico.png`](evidencias/10-render-swagger-publico.png)
+* **Endpoint protegido `GET /api/listas` en Render sin token (`401 Unauthorized`)**: [`evidencias/11-render-listas-sin-token-401.png`](evidencias/11-render-listas-sin-token-401.png)
+* **Endpoint protegido `GET /api/listas` en Render con Bearer Token válido (`200 OK`)**: [`evidencias/12-render-listas-con-token-200.png`](evidencias/12-render-listas-con-token-200.png)
 
 ---
 
