@@ -5,6 +5,7 @@ API REST desarrollada en Java 25 con Spring Boot. Este proyecto evoluciona la AP
 * **URL pública desplegada en Render**: [https://tp-web2-api.onrender.com](https://tp-web2-api.onrender.com)
 * **Health Check en vivo**: [https://tp-web2-api.onrender.com/health](https://tp-web2-api.onrender.com/health)
 * **Swagger UI en vivo**: [https://tp-web2-api.onrender.com/swagger-ui/index.html](https://tp-web2-api.onrender.com/swagger-ui/index.html)
+* **Ejecución exitosa de GitHub Actions**: [https://github.com/benjaeceiza/tp-1-web2/actions/runs/42039036920](https://github.com/benjaeceiza/tp-1-web2/actions/runs/42039036920)
 
 ---
 
@@ -98,6 +99,17 @@ El proyecto se desplegó en **Render** utilizando contenedorización con [`Docke
 4. **Verificación del despliegue**:
    * En la pestaña **Logs** de Render se verificó que **Flyway** creó la tabla `flyway_schema_history` y aplicó las migraciones `V1` a `V6` sobre el PostgreSQL remoto, finalizando con `==> Your service is live`.
    * Se comprobó que `GET https://tp-web2-api.onrender.com/health` responde `200 OK` con `{"status":"ok","service":"api-blank"}` y que Swagger UI funciona desde `https://tp-web2-api.onrender.com/swagger-ui/index.html`.
+
+---
+
+## Evidencias del TP3 (en carpeta `/evidencias`)
+
+* **GitHub Actions CI en verde**: [`evidencias/5-github-actions-ci-verde.png`](evidencias/5-github-actions-ci-verde.png)
+* **Pull Request con checks aprobados y mergeado a `main`**: [`evidencias/6-pull-request-merged.png`](evidencias/6-pull-request-merged.png)
+* **Servicio en estado `Live` en Render**: [`evidencias/7-render-deploy-live.jpg`](evidencias/7-render-deploy-live.jpg)
+* **Migraciones de Flyway (`V1` a `V6`) aplicadas en PostgreSQL remoto (Render Logs)**: [`evidencias/8-render-flyway-migraciones.png`](evidencias/8-render-flyway-migraciones.png)
+* **Endpoint `/health` respondiendo `200 OK` en la URL pública**: [`evidencias/9-render-health-check.png`](evidencias/9-render-health-check.png)
+* **Swagger UI público en Render con botón Authorize**: [`evidencias/10-render-swagger-publico.png`](evidencias/10-render-swagger-publico.png)
 
 ---
 
